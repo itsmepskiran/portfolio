@@ -314,6 +314,141 @@ window.addEventListener('scroll', () => {
     });
 });
 
+// Testimonial Carousel Functionality
+class TestimonialCarousel {
+    constructor() {
+        this.currentSlide = 0;
+        this.totalSlides = 3;
+        this.autoPlayInterval = null;
+        this.isAutoPlaying = false;
+        
+        this.init();
+    }
+    
+    init() {
+        this.track = document.querySelector('.testimonials-track');
+        this.prevBtn = document.getElementById('prevBtn');
+        this.nextBtn = document.getElementById('nextBtn');
+        this.indicators = document.querySelectorAll('.indicator');
+        
+        if (!this.track) return;
+        
+        this.bindEvents();
+        this.updateCarousel();
+        this.startAutoPlay();
+    }
+    
+    bindEvents() {
+        // Button controls
+        this.prevBtn?.addEventListener('click', () => this.prevSlide());
+        this.nextBtn?.addEventListener('click', () => this.nextSlide());
+        
+        // Indicator controls
+        this.indicators.forEach((indicator, index) => {
+            indicator.addEventListener('click', () => this.goToSlide(index));
+        });
+        
+        // Pause on hover
+        const testimonialsSection = document.querySelector('.testimonials');
+        testimonialsSection?.addEventListener('mouseenter', () => this.stopAutoPlay());
+        testimonialsSection?.addEventListener('mouseleave', () => this.startAutoPlay());
+        
+        // Touch/swipe support
+        let startX = 0;
+        let endX = 0;
+        
+        this.track.addEventListener('touchstart', (e) => {
+            startX = e.touches[0].clientX;
+        });
+        
+        this.track.addEventListener('touchend', (e) => {
+            endX = e.changedTouches[0].clientX;
+            const diff = startX - endX;
+            
+            if (Math.abs(diff) > 50) {
+                if (diff > 0) {
+                    this.nextSlide();
+                } else {
+                    this.prevSlide();
+                }
+            }
+        });
+        
+        // Keyboard support
+        document.addEventListener('keydown', (e) => {
+            if (e.key === 'ArrowLeft') this.prevSlide();
+            if (e.key === 'ArrowRight') this.nextSlide();
+        });
+    }
+    
+    updateCarousel() {
+        if (!this.track) return;
+        
+        const slideWidth = 100; // Each slide takes 100% width
+        const offset = -this.currentSlide * slideWidth;
+        
+        this.track.style.transform = `translateX(${offset}%)`;
+        
+        // Update indicators
+        this.indicators.forEach((indicator, index) => {
+            indicator.classList.toggle('active', index === this.currentSlide);
+        });
+        
+        // Update button states
+        if (this.prevBtn) {
+            this.prevBtn.disabled = this.currentSlide === 0;
+        }
+        if (this.nextBtn) {
+            this.nextBtn.disabled = this.currentSlide === this.totalSlides - 1;
+        }
+    }
+    
+    nextSlide() {
+        this.currentSlide = (this.currentSlide + 1) % this.totalSlides;
+        this.updateCarousel();
+        this.resetAutoPlay();
+    }
+    
+    prevSlide() {
+        this.currentSlide = (this.currentSlide - 1 + this.totalSlides) % this.totalSlides;
+        this.updateCarousel();
+        this.resetAutoPlay();
+    }
+    
+    goToSlide(index) {
+        this.currentSlide = index;
+        this.updateCarousel();
+        this.resetAutoPlay();
+    }
+    
+    startAutoPlay() {
+        if (this.isAutoPlaying) return;
+        
+        this.isAutoPlaying = true;
+        this.autoPlayInterval = setInterval(() => {
+            this.nextSlide();
+        }, 5000); // Change slide every 5 seconds
+    }
+    
+    stopAutoPlay() {
+        this.isAutoPlaying = false;
+        if (this.autoPlayInterval) {
+            clearInterval(this.autoPlayInterval);
+            this.autoPlayInterval = null;
+        }
+    }
+    
+    resetAutoPlay() {
+        this.stopAutoPlay();
+        this.startAutoPlay();
+    }
+}
+
+// Initialize carousel when DOM is ready
+document.addEventListener('DOMContentLoaded', () => {
+    new TestimonialCarousel();
+});
+
 // Add CSS for active navigation state
 const style = document.createElement('style');
 style.textContent = `
